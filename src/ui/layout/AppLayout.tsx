@@ -1,8 +1,10 @@
 import { SidebarProvider, useSidebar } from "../../context/SidebarContext";
-import { Outlet } from "react-router";
+import { Outlet, Navigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import AppHeader from "./AppHeader";
 import Backdrop from "./Backdrop";
 import AppSidebar from "./AppSidebar";
+import { AuthServiceImpl } from "../../infrastructure/services/AuthServiceImpl";
 
 const LayoutContent: React.FC = () => {
   const { isExpanded, isHovered, isMobileOpen } = useSidebar();
@@ -19,7 +21,7 @@ const LayoutContent: React.FC = () => {
         } ${isMobileOpen ? "ml-0" : ""}`}
       >
         <AppHeader />
-        <div className="p-4 mx-auto max-w-(--breakpoint-2xl) md:p-6">
+        <div className="p-4 mx-auto max-w-7xl md:p-6">
           <Outlet />
         </div>
       </div>
@@ -28,6 +30,19 @@ const LayoutContent: React.FC = () => {
 };
 
 const AppLayout: React.FC = () => {
+  const authService = new AuthServiceImpl();
+  const [isExpired, setIsExpired] = useState(authService.isTokenExpired());
+
+  useEffect(() => {
+    if (isExpired) {
+      window.alert("Tu sesión ha expirado. Por favor, inicia sesión nuevamente.");
+    }
+  }, [isExpired]);
+
+  if (isExpired) {
+    return <Navigate to="/signin" replace />;
+  }
+
   return (
     <SidebarProvider>
       <LayoutContent />
@@ -35,4 +50,4 @@ const AppLayout: React.FC = () => {
   );
 };
 
-export default AppLayout;
+export default AppLayout;
